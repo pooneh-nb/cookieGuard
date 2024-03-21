@@ -1,10 +1,23 @@
+function getBaseDomain(url) {
+  const hostname = new URL(url).hostname;
+  const parts = hostname.split('.').reverse();
+  if (parts.length > 2) {
+    if (parts[1].length ===2 && parts[0].length ===2) {
+      return `${parts[2]}.${parts[1]}.${parts[0]}`;
+    } else {
+      return `${parts[1]}.${parts[0]}`;
+    }
+  }
+  return hostname;
+}
+
 // listen to http responses
 chrome.webRequest.onHeadersReceived.addListener(
   function(details) {
-    const firstPartyDomain = new URL(details.url).hostname;
+    const firstPartyDomain = getBaseDomain(details.url);
     let isThirdParty = false;
     if (details.initiator) {
-        const initiatorDomain = new URL(details.initiator).hostname;
+        const initiatorDomain = getBaseDomain(details.initiator);
         isThirdParty = initiatorDomain !== firstPartyDomain;
     }
 
@@ -25,22 +38,19 @@ chrome.webRequest.onHeadersReceived.addListener(
 
 // Listener for document.cookie from content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "updateCookieDictionary" && request.cookieName && request.setterDomain, request.visitingDomain) {
-    const setterDomain = request.setterDomain;
-    // console.log(request.cookieName, setterDomain, )
-    updateCookieDictionary(request.cookieName, setterDomain, request.visitingDomain);
-  }
-
-  if (request.type === "getCookieDataset"  && request.visitingDomain) {
+  if (request.type === "updateCookieDictionary") {
+    // console.log('Received message:', request);
+    updateCookieDictionary(request.cookieName, request.setterDomain, request.visitingDomain);
+  } else if (request.type === "getCookieDataset") {
     // Fetch and return the entire cookie dataset from storage
     chrome.storage.local.get({cookieDictionary: {}}, function(result) {
       const domainCookies = result.cookieDictionary[request.visitingDomain] || {};
-      // console.log(domainCookies);
       sendResponse({cookieDataset: domainCookies});
     });
     return true; // Return true to indicate an asynchronous response
 }
 });
+
 
 function updateCookieDictionary(cookieName, setterDomain, visitingDomain) {
   // console.log(visitingDomain);
