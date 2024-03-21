@@ -69,15 +69,13 @@
                 // Check if the cookie's setter domain matches the caller's domain
                 return cookieDataset[cookieName] === callerDomain;
             });
-            
-            // Join the filtered cookies back into a string
-            console.log(filteredCookies.join('; '))
-            // return filteredCookies.join('; ');
-            // console.log(callerDomain, "calls getter");
-            // console.log("original", originalGet.call(this));
-            // window.postMessage({ type: 'getCookieDataset' }, '*');
-            // console.log("yay!", cookieDataSet);
-            // return originalGet.call(this);
+           //  
+        //    console.log(allCookies.join('; '));
+        //    return allCookies.join('; ');
+            // filtered
+            console.log(filteredCookies.join('; '));
+            return filteredCookies.join('; ');
+           
         },
         set: function(value) {
             const callerUrl = getLastCallerUrl();

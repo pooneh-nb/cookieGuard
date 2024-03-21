@@ -11,6 +11,7 @@ function getBaseDomain(url) {
   return hostname;
 }
 
+chrome.webRequest.sender
 // listen to http responses
 chrome.webRequest.onHeadersReceived.addListener(
   function(details) {
