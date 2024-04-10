@@ -60,23 +60,23 @@
             const callerUrl = getLastCallerUrl();
             const callerDomain = callerUrl ? getBaseDomain(callerUrl) : getBaseDomain(document.domain);
             const mainDomain = getBaseDomain(window.location.hostname);
-            console.log(callerDomain, "calls getter");
+            // console.log(callerDomain, "calls getter");
             
             if (callerDomain === mainDomain) {
                 // If the caller's domain matches the main site's domain, return all cookies
                 const allCookies = originalGet.call(this);
-                console.log("Returning all cookies for main domain:", allCookies);
+                // console.log("Returning all cookies for main domain:", allCookies);
                 return allCookies;
             } else if(mainDomain == 'facebook.com') {
                 if (callerDomain == 'fbcdn.net') {
                     const allCookies = originalGet.call(this);
-                    console.log("Returning all cookies for fbcdn domain:", allCookies);
+                    // console.log("Returning all cookies for fbcdn domain:", allCookies);
                     return allCookies;
                 }
             } else if(mainDomain == 'twitter.com') {
                 if (callerDomain == 'twimg.com') {
                     const allCookies = originalGet.call(this);
-                    console.log("Returning all cookies for twimg domain:", allCookies);
+                    // console.log("Returning all cookies for twimg domain:", allCookies);
                     return allCookies;
                 }
             } else {
@@ -87,25 +87,16 @@
                     // Check if the cookie's setter domain matches the caller's domain
                     return cookieDataset[cookieName] === callerDomain;
                 });
-                console.log("Filtered cookies:", filteredCookies.join('; '));
+                // console.log("Filtered cookies:", filteredCookies.join('; '));
                 return filteredCookies.join('; ');
             }
-            // Use originalGet to get all cookies
-            // const allCookies = originalGet.call(document).split('; ');
-            // const filteredCookies = allCookies.filter(cookie => {
-            //     const cookieName = cookie.split('=')[0];
-            //     // Check if the cookie's setter domain matches the caller's domain
-            //     return cookieDataset[cookieName] === callerDomain;
-            // });
-            // console.log(filteredCookies.join('; '));
-            // return filteredCookies.join('; ');
            
         },
         set: function(value) {
             const callerUrl = getLastCallerUrl();
             // console.log("Caller raw url:", callerUrl);
             const callerDomain = callerUrl ? getBaseDomain(callerUrl) : getBaseDomain(document.domain);
-            console.log(callerDomain, "calls setter to set", value.split('=')[0].trim());
+            // console.log(callerDomain, "calls setter to set", value.split('=')[0].trim());
             window.postMessage({ 
                 type: 'setCookie',
                 cookieName: value.split('=')[0].trim(),

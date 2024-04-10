@@ -27,7 +27,7 @@ chrome.webRequest.onHeadersReceived.addListener(
       details.responseHeaders.forEach(header => {
         if (header.name.toLowerCase() === "set-cookie" && !header.value.toLowerCase().includes("HttpOnly")) {
           const cookieName = header.value.split('=')[0].trim();
-          console.log("http", details.url, "calls setter to set", cookieName);
+          // console.log("http", details.url, "calls setter to set", cookieName);
           updateCookieDictionary(cookieName, firstPartyDomain, firstPartyDomain);
         }
       });
@@ -67,7 +67,7 @@ function updateCookieDictionary(cookieName, setterDomain, visitingDomain) {
       chrome.storage.local.set({cookieDictionary: data.cookieDictionary});
     } else {
       if (setterDomain != data.cookieDictionary[visitingDomain][cookieName]){
-        console.log(setterDomain, ' attempt overwriting ', cookieName, 'owned by', data.cookieDictionary[visitingDomain][cookieName]);
+        // console.log(setterDomain, ' attempt overwriting ', cookieName, 'owned by', data.cookieDictionary[visitingDomain][cookieName]);
       }
     }
   });
