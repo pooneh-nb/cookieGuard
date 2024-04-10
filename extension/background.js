@@ -11,7 +11,7 @@ function getBaseDomain(url) {
   return hostname;
 }
 
-chrome.webRequest.sender
+// chrome.webRequest.sender
 // listen to http responses
 chrome.webRequest.onHeadersReceived.addListener(
   function(details) {
@@ -25,8 +25,9 @@ chrome.webRequest.onHeadersReceived.addListener(
     // Only proceed for first-party responses
     if (!isThirdParty) {
       details.responseHeaders.forEach(header => {
-        if (header.name.toLowerCase() === "set-cookie" && !header.value.toLowerCase().includes("httponly")) {
+        if (header.name.toLowerCase() === "set-cookie" && !header.value.toLowerCase().includes("HttpOnly")) {
           const cookieName = header.value.split('=')[0].trim();
+          console.log("http", details.url, "calls setter to set", cookieName);
           updateCookieDictionary(cookieName, firstPartyDomain, firstPartyDomain);
         }
       });
@@ -64,6 +65,10 @@ function updateCookieDictionary(cookieName, setterDomain, visitingDomain) {
       // Update only if the cookie name doesn't exist under this domain
       data.cookieDictionary[visitingDomain][cookieName] = setterDomain;
       chrome.storage.local.set({cookieDictionary: data.cookieDictionary});
+    } else {
+      if (setterDomain != data.cookieDictionary[visitingDomain][cookieName]){
+        console.log(setterDomain, ' attempt overwriting ', cookieName, 'owned by', data.cookieDictionary[visitingDomain][cookieName]);
+      }
     }
   });
 }

@@ -59,29 +59,41 @@
             // console.log("GET REQUEST");
             const callerUrl = getLastCallerUrl();
             const callerDomain = callerUrl ? getBaseDomain(callerUrl) : getBaseDomain(document.domain);
+            const mainDomain = getBaseDomain(window.location.hostname);
             console.log(callerDomain, "calls getter");
-            // console.log("Cookie dataset currently available:", cookieDataset);
-
+            
+            if (callerDomain === mainDomain) {
+                // If the caller's domain matches the main site's domain, return all cookies
+                const allCookies = originalGet.call(this);
+                console.log("Returning all cookies for main domain:", allCookies);
+                return allCookies;
+            } else {
+                // If the caller's domain does not match, filter cookies
+                const allCookiesArray = originalGet.call(this).split('; ');
+                const filteredCookies = allCookiesArray.filter(cookie => {
+                    const cookieName = cookie.split('=')[0];
+                    // Check if the cookie's setter domain matches the caller's domain
+                    return cookieDataset[cookieName] === callerDomain;
+                });
+                console.log("Filtered cookies:", filteredCookies.join('; '));
+                return filteredCookies.join('; ');
+            }
             // Use originalGet to get all cookies
-            const allCookies = originalGet.call(document).split('; ');
-            const filteredCookies = allCookies.filter(cookie => {
-                const cookieName = cookie.split('=')[0];
-                // Check if the cookie's setter domain matches the caller's domain
-                return cookieDataset[cookieName] === callerDomain;
-            });
-           //  
-        //    console.log(allCookies.join('; '));
-        //    return allCookies.join('; ');
-            // filtered
-            console.log(filteredCookies.join('; '));
-            return filteredCookies.join('; ');
+            // const allCookies = originalGet.call(document).split('; ');
+            // const filteredCookies = allCookies.filter(cookie => {
+            //     const cookieName = cookie.split('=')[0];
+            //     // Check if the cookie's setter domain matches the caller's domain
+            //     return cookieDataset[cookieName] === callerDomain;
+            // });
+            // console.log(filteredCookies.join('; '));
+            // return filteredCookies.join('; ');
            
         },
         set: function(value) {
             const callerUrl = getLastCallerUrl();
             // console.log("Caller raw url:", callerUrl);
             const callerDomain = callerUrl ? getBaseDomain(callerUrl) : getBaseDomain(document.domain);
-            // console.log(callerDomain, "calls setter");
+            console.log(callerDomain, "calls setter to set", value.split('=')[0].trim());
             window.postMessage({ 
                 type: 'setCookie',
                 cookieName: value.split('=')[0].trim(),
