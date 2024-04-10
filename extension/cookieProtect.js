@@ -67,6 +67,18 @@
                 const allCookies = originalGet.call(this);
                 console.log("Returning all cookies for main domain:", allCookies);
                 return allCookies;
+            } else if(mainDomain == 'facebook.com') {
+                if (callerDomain == 'fbcdn.net') {
+                    const allCookies = originalGet.call(this);
+                    console.log("Returning all cookies for fbcdn domain:", allCookies);
+                    return allCookies;
+                }
+            } else if(mainDomain == 'twitter.com') {
+                if (callerDomain == 'twimg.com') {
+                    const allCookies = originalGet.call(this);
+                    console.log("Returning all cookies for twimg domain:", allCookies);
+                    return allCookies;
+                }
             } else {
                 // If the caller's domain does not match, filter cookies
                 const allCookiesArray = originalGet.call(this).split('; ');
