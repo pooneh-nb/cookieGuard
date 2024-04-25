@@ -55,7 +55,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 
 function updateCookieDictionary(cookieName, setterDomain, visitingDomain) {
-  // console.log(visitingDomain);
+
+  console.log(visitingDomain);
   chrome.storage.local.get({cookieDictionary: {}}, function(data) {
     if (!data.cookieDictionary[visitingDomain]) {
       data.cookieDictionary[visitingDomain] = {}; // Initialize if the domain doesn't exist
