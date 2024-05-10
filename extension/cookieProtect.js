@@ -97,6 +97,7 @@
             // console.log("Caller raw url:", callerUrl);
             const callerDomain = callerUrl ? getBaseDomain(callerUrl) : getBaseDomain(document.domain);
             // console.log(callerDomain, "calls setter to set", value.split('=')[0].trim());
+            
             window.postMessage({ 
                 type: 'setCookie',
                 cookieName: value.split('=')[0].trim(),
