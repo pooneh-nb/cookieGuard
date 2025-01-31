@@ -1,0 +1,33 @@
+{
+    "manifest_version": 3,
+    "name": "Cookie Interceptor",
+    "version": "1.0",
+    "permissions": [
+        "activeTab",
+        "tabs",
+        "cookies",
+        "storage",
+        "webRequest",
+        "browsingData"
+    ],    
+    "host_permissions": [
+        "<all_urls>"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["contentScript.js"],
+        "run_at": "document_start"
+      }
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": ["injectedScript.js"],
+        "matches": ["<all_urls>"]
+      }
+    ]
+  }
+  

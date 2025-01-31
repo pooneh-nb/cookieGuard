@@ -1,0 +1,146 @@
+[
+  {
+    "cookieName": "lang",
+    "cookieValue": "v=2&lang=en-us",
+    "accessorURL": "https://www.linkedin.com/li/track",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 1816.7999999970198
+  },
+  {
+    "cookieName": "lidc",
+    "cookieValue": "\"b=VGST09:s=V:r=V:a=V:p=V:g=3092:u=1:x=1:i=1738296131:t=1738382531:v=2:sig=AQGtNtzASG58fZr-V4xmQiGrWyFjkY0g\"",
+    "accessorURL": "https://www.linkedin.com/li/track",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 1821.8999999985099
+  },
+  {
+    "cookieName": "bcookie",
+    "cookieValue": "\\\"v=2&5ff6324a-12c5-4121-8039-6889e4854888\\\"",
+    "accessorURL": "https://www.linkedin.com/li/track",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 3432.5
+  },
+  {
+    "cookieName": "demdex",
+    "cookieValue": "77616590577691065303361219658741227988",
+    "accessorURL": "https://dpm.demdex.net/ibs:dpid=771&dpuuid=&google_error=15?gdpr=0&gdpr_consent=",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 6752.4000000059605
+  },
+  {
+    "cookieName": "demdex",
+    "cookieValue": "77616590577691065303361219658741227988",
+    "accessorURL": "https://dpm.demdex.net/ibs:dpid=1957&dpuuid=39D1520A19506E1C13E1478F187D6F60",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 7126.80000000447
+  },
+  {
+    "cookieName": "bcookie",
+    "cookieValue": "\\\"v=2&5470924c-714f-46b1-83fd-9b329f24f769\\\"",
+    "accessorURL": "https://www.linkedin.com/apfc/collect",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 997.3000000044703
+  },
+  {
+    "cookieName": "lidc",
+    "cookieValue": "\\\"b=OGST09:s=O:r=O:a=O:p=O:g=3035:u=1:x=1:i=1738298599:t=1738384999:v=2:sig=AQGLNeT1jInZPOagTh9Rd9o-U7gnengu\\\"",
+    "accessorURL": "https://www.linkedin.com/apfc/collect",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 1018
+  },
+  {
+    "cookieName": "lidc",
+    "cookieValue": "\\\"b=VGST09:s=V:r=V:a=V:p=V:g=3092:u=1:x=1:i=1738298599:t=1738384999:v=2:sig=AQH5KzzLBUKUMhKyV7erd1ePPb4_SR9U\\\"",
+    "accessorURL": "https://www.linkedin.com/li/track",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 1029.6000000014901
+  },
+  {
+    "cookieName": "lidc",
+    "cookieValue": "\\\"b=OGST09:s=O:r=O:a=O:p=O:g=3035:u=1:x=1:i=1738298599:t=1738384999:v=2:sig=AQGLNeT1jInZPOagTh9Rd9o-U7gnengu\\\"",
+    "accessorURL": "https://www.linkedin.com/apfc/collect",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 1031.5
+  },
+  {
+    "cookieName": "lang",
+    "cookieValue": "v=2&lang=en-us",
+    "accessorURL": "https://www.linkedin.com/apfc/collect",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 1033.7000000029802
+  },
+  {
+    "cookieName": "lang",
+    "cookieValue": "v=2&lang=en-us",
+    "accessorURL": "https://www.linkedin.com/apfc/collect",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 1041.8999999985099
+  },
+  {
+    "cookieName": "lidc",
+    "cookieValue": "\\\"b=OGST09:s=O:r=O:a=O:p=O:g=3036:u=1:x=1:i=1738299685:t=1738386085:v=2:sig=AQHgP8xT7MTrXsar83F-0SX7HsgOCT9Z\\\"",
+    "accessorURL": "https://www.linkedin.com/li/track",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 1086936.8999999985
+  },
+  {
+    "cookieName": "lidc",
+    "cookieValue": "\\\"b=TGST09:s=T:r=T:a=T:p=T:g=2944:u=1:x=1:i=1738301017:t=1738387417:v=2:sig=AQGVPRoXiCICQID4Y7q140BwAoTLlSK8\\\"",
+    "accessorURL": "https://www.linkedin.com/li/track",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 2419186.3999999985
+  },
+  {
+    "cookieName": "lidc",
+    "cookieValue": "\\\"b=TGST09:s=T:r=T:a=T:p=T:g=2945:u=1:x=1:i=1738312039:t=1738398439:v=2:sig=AQGT0MO-HnvRSJh7ZDcZu7YBgTksJMP0\\\"",
+    "accessorURL": "https://www.linkedin.com/li/track",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 13440994.399999999
+  },
+  {
+    "cookieName": "lidc",
+    "cookieValue": "\\\"b=TGST09:s=T:r=T:a=T:p=T:g=2946:u=1:x=1:i=1738341071:t=1738427471:v=2:sig=AQELuJbkRBWiFg7flvt1NtU8BQ4JwY9i\\\"",
+    "accessorURL": "https://www.linkedin.com/li/track",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 42473169.50000001
+  },
+  {
+    "cookieName": "lidc",
+    "cookieValue": "\\\"b=TGST09:s=T:r=T:a=T:p=T:g=2947:u=1:x=1:i=1738347661:t=1738434061:v=2:sig=AQFNCbOgTrVPU7-vLRCg1fVSiRIyEAiK\\\"",
+    "accessorURL": "https://www.linkedin.com/li/track",
+    "visitingDomain": "linkedin.com",
+    "action": "set",
+    "accessType": "http",
+    "timestamp": 49062998.800000004
+  }
+]
