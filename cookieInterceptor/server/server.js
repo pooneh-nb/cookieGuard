@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const fs = require('fs');
 const jsonfile = require('jsonfile');
+const path = require('path');
 const app = express();
 const port = 3000;
 
@@ -20,30 +21,28 @@ app.use(cors({ credentials: true, origin: true }));
 app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
 app.use(bodyParser.json());
 
+
 // Insert or update cookie logs
-async function insertCookieLogs(newHttpReq, visitingDomain) {
-    const directory = `${outputDirectory}${visitingDomain}`;
-    if (!fs.existsSync(directory)) {
-        fs.mkdirSync(directory, { recursive: true });
+async function insertCookieLogs(logs, visitingDomain) {
+
+    const directoryPath = path.join('output', visitingDomain);
+    if (!fs.existsSync(directoryPath)) {
+        fs.mkdirSync(directoryPath, { recursive: true });
     }
-    const file = `${directory}/cookielogs.json`;
 
-    jsonfile.readFile(file, (err, data) => {
-        if (err && !err.toString().includes('ENOENT')) {
-            console.error('Error reading file:', err);
-            return;
-        }
-        const logs = data || [];
-        logs.push(newHttpReq);
+    // Path for the log file
+    const file = path.join(directoryPath, 'cookielogs.json');
 
-        jsonfile.writeFile(file, logs, { spaces: 2 }, function (err) {
-            if (err) console.error('Error writing file:', err);
-        });
+    jsonfile.writeFile(file, logs, {
+        flag: 'a'
+    }, function(err) {
+        if (err) console.error(err);
     });
 }
 
 // Route to handle logging cookie data
 app.post('/cookieLogs', (req, res) => {
+    console.log("Receiving");
     if (!req.body.visitingDomain) {
         res.status(400).send("Website identifier is required.");
         return;

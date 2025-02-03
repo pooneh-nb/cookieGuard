@@ -81,8 +81,8 @@ function sendData(data) {
 // Function to log cookie settings and activities
 function logCookieData(data) {
     const logEntry = {
-        "cookieName": data.cookieName,
-        "cookieValue": data.cookieValue.replace(/"/g, '\\"'),
+        "cookieName": JSON.stringify(data.cookieName),
+        "cookieValue": JSON.stringify(data.cookieValue),
         "accessorURL": data.accessorURL,
         "visitingDomain": data.visitingDomain,
         "action": data.action,
