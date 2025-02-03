@@ -30,7 +30,6 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.runtime.onStartup.addListener(() => {
     clearBrowserData(() => {
       console.log('Browser data cleared on startup.');
-      // Start your extension's main functionality
     });
   });
 
@@ -78,7 +77,6 @@ function sendData(data) {
     .catch(error => console.error("Failed to send data:", error));
 }
 
-// Function to log cookie settings and activities
 function logCookieData(data) {
     const logEntry = {
         "cookieName": JSON.stringify(data.cookieName),
@@ -91,15 +89,6 @@ function logCookieData(data) {
     };
 
     sendData(logEntry);
-
-    // // Access chrome.storage to store the log entry
-    // chrome.storage.local.get({cookieLogs: []}, function(result) {
-    //     const logs = result.cookieLogs;
-    //     logs.push(logEntry);
-    //     chrome.storage.local.set({cookieLogs: logs}, function() {
-    //         console.log("Cookie data logged successfully:", logEntry);
-    //     });
-    // });
 }
 
 // Listen to HTTP responses
