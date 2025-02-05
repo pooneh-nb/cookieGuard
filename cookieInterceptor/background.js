@@ -72,15 +72,19 @@ function sendData(data) {
             "Content-Type": "application/json"
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => console.log("Response from server:", data))
     .catch(error => console.error("Failed to send data:", error));
 }
 
 function logCookieData(data) {
     const logEntry = {
-        "cookieName": JSON.stringify(data.cookieName),
-        "cookieValue": JSON.stringify(data.cookieValue),
+        "cookie": data.cookie,
         "accessorURL": data.accessorURL,
         "visitingDomain": data.visitingDomain,
         "action": data.action,
@@ -117,8 +121,7 @@ chrome.webRequest.onHeadersReceived.addListener(
                         const cookieValue = cookieDetails.slice(1).join('=');
                         
                         logCookieData({
-                            cookieName: cookieName,
-                            cookieValue: cookieValue,
+                            cookie: header.value,
                             accessorURL: details.url,
                             visitingDomain: visitingDomain,
                             action: 'set',
@@ -132,17 +135,4 @@ chrome.webRequest.onHeadersReceived.addListener(
     { urls: ["<all_urls>"] },
     ["responseHeaders", "extraHeaders"]
 );
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === 'cookieAccess') {
-        logCookieData({
-            cookieName: message.action === 'get' ? message.cookieData :  message.cookieName,
-            cookieValue: message.action === 'get' ? '' : message.cookieValue,
-            accessorURL: message.accessorURL, // Using sender's tab URL if available
-            visitingDomain: message.visitingDomain,
-            action: message.action,
-            accessType: message.accessType
-        });
-    }
-});
 

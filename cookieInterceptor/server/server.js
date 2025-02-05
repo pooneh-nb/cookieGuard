@@ -29,7 +29,6 @@ async function insertCookieLogs(logs, visitingDomain) {
 }
 
 app.post('/cookieLogs', (req, res) => {
-    console.log("Receiving");
     if (!req.body.visitingDomain) {
         res.status(400).send("Website identifier is required.");
         return;

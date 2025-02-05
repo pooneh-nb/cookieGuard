@@ -30,46 +30,57 @@
         }
     }
 
-    const originalGet = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie').get;
-    const originalSet = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie').set;
+    var cookieGetter = document.__lookupGetter__("cookie").bind(document);
+    var cookieSetter = document.__lookupSetter__("cookie").bind(document);
 
     Object.defineProperty(document, 'cookie', {
         get: function() {
-            const originalGet = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie').get;
-            const allCookies = originalGet.call(document); // Get all cookies as a string
-            const cookieArray = allCookies.split('; '); // Split into individual cookies
-            const cookies = cookieArray.map(cookie => {
-                const parts = cookie.split('=');
-                return {name: parts[0], value: parts.slice(1).join('=')}; // Handle cookies with '=' in their value
-            });
 
             const callerUrl = getLastCallerUrl();
             const callerURL = callerUrl ? callerUrl : document.location.href;
             const visitingSiteDomain = window.location.hostname;
-            window.postMessage({
-                type: 'cookieAccess',
-                action: 'get',
-                accessType: 'script',
-                cookieData: cookies, // Send all current cookies
-                accessorURL: callerURL,
-                visitingDomain: visitingSiteDomain
-            }, "*");
-            return originalGet.call(this);
+            var storedCookieStr = cookieGetter();
+            fetch(`http://localhost:3000/cookieLogs`, {
+                method: "POST",
+                body: JSON.stringify({
+                    "cookie": storedCookieStr,
+                    "accessorURL": callerURL,
+                    "visitingDomain": visitingSiteDomain,
+                    "action": 'get',
+                    "accessType": 'script',
+                    "timestamp": performance.now()
+                }),
+                mode: 'cors',
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }).then(res => {
+                console.log("CookieStorage collected");
+            });
+            return cookieGetter();
         },
-        set: function(value) {
+        set: function(cookieString) {
             const callerUrl = getLastCallerUrl();
             const callerURL = callerUrl ? callerUrl : document.location.href;
             const  visitingSiteDomain = window.location.hostname;
-            window.postMessage({
-                type: 'cookieAccess',
-                cookieName: value.split('=')[0].trim(),
-                cookieValue: value.split('=')[1] || '',
-                accessorURL: callerURL,
-                visitingDomain: visitingSiteDomain,
-                action: 'set',
-                accessType: 'script',
-            }, "*");
-            originalSet.apply(this, [value]);
+            fetch(`http://localhost:3000/cookieLogs`, {
+                method: "POST",
+                body: JSON.stringify({
+                    "cookie": cookieString,
+                    "accessorURL": callerURL,
+                    "visitingDomain": visitingSiteDomain,
+                    "action": 'set',
+                    "accessType": 'script',
+                    "timestamp": performance.now()
+                }),
+                mode: 'cors',
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }).then(res => {
+                console.log("CookieStorage collected");
+            });
+            return cookieSetter(cookieString);
         },
         configurable: true
     });
