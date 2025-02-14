@@ -7,13 +7,15 @@ const path = require('path');
 const app = express();
 const port = 3000;
 
-app.use(cors({ credentials: true, origin: true }));
+app.use(cors({
+    origin: '*', // Allow all origins (or specify the exact origin of the website/extension)
+    credentials: true,
+  }));
 app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
 app.use(bodyParser.json());
 
 
 async function insertCookieLogs(logs, visitingDomain) {
-
     const directoryPath = path.join('output', visitingDomain);
     if (!fs.existsSync(directoryPath)) {
         fs.mkdirSync(directoryPath, { recursive: true });
@@ -25,7 +27,22 @@ async function insertCookieLogs(logs, visitingDomain) {
         flag: 'a'
     }, function(err) {
         if (err) console.error(err);
-    });
+    })
+}
+
+async function insertRequestLogs(logs, visitingDomain) {
+    const directoryPath = path.join('output', visitingDomain);
+    if (!fs.existsSync(directoryPath)) {
+        fs.mkdirSync(directoryPath, { recursive: true });
+    }
+
+    const file = path.join(directoryPath, 'requestlogs.json');
+
+    jsonfile.writeFile(file, logs, {
+        flag: 'a'
+    }, function(err) {
+        if (err) console.error(err);
+    })
 }
 
 app.post('/cookieLogs', (req, res) => {
@@ -34,7 +51,18 @@ app.post('/cookieLogs', (req, res) => {
         return;
     }
     insertCookieLogs(req.body, req.body.visitingDomain);
-    res.send("Request logged successfully");
+    
+    res.send("request-success");
+});
+
+app.post('/requestLogs', (req, res) => {
+    if (!req.body.visitingDomain) {
+        res.status(400).send("Website identifier is required.");
+        return;
+    }
+    insertRequestLogs(req.body, req.body.visitingDomain);
+    
+    res.send("request-success");
 });
 
 
