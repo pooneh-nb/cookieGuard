@@ -190,7 +190,7 @@ def delete_storage(transaction, storage_dict, siteName):
     return storage_dict
 
 
-def main(cookieLogs_path, storage_dict, common_headers):
+def moderator(cookieLogs_path, storage_dict, common_headers):
     siteName = cookieLogs_path.split('/')[-2]
     storage_dict.setdefault(siteName, {})
 
@@ -213,7 +213,8 @@ def main(cookieLogs_path, storage_dict, common_headers):
     else:
         storage_dict[siteName] = {}
 
-if __name__ == "__main__":
+def main():
+    print("create_storage_logs_3")
     # load data
     sorted_cookies_path = Path('analyze/data/sorted_cookies')
     sorted_cookies = utilities.get_directories_in_a_directory(sorted_cookies_path)
@@ -230,10 +231,17 @@ if __name__ == "__main__":
 
     for sorted_cookie in sorted_cookies:
         sorted_cookieLogs_path = utilities.get_files_in_a_directory(sorted_cookie)[0]
-        main(sorted_cookieLogs_path, storage_dict, common_headers)
+        moderator(sorted_cookieLogs_path, storage_dict, common_headers)
 
     output = Path('analyze/data')
+    print("storing storage_dict.json")
     utilities.write_json(Path(output, "storage_dict.json"), storage_dict)
+    print("done!")
+
+if __name__ == "__main__":
+    main()
+    
+
 
 
 
