@@ -71,7 +71,7 @@ def get_domain(url):
     """
     try:
         u = tldextract.extract(url)
-        return "https://" + u.domain + "." + u.suffix
+        return u.domain + "." + u.suffix
     except Exception as e:
         print(e)
         return ''

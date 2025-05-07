@@ -1,6 +1,15 @@
-const script = document.createElement('script');
-script.src = chrome.runtime.getURL('injectedScript.js');
-(document.head || document.documentElement).appendChild(script);
+// const script = document.createElement('script');
+// script.src = chrome.runtime.getURL('injectedScript.js');
+// (document.head || document.documentElement).appendChild(script);
+
+const inject = (scriptName) => {
+  const script = document.createElement('script');
+  script.src = chrome.runtime.getURL(scriptName);
+  (document.head || document.documentElement).appendChild(script);
+};
+
+inject('injectedScript.js');
+inject('cookieStoreMonitor.js');
 
 // Listen for messages from the injected script and forward them to the background
 window.addEventListener('message', event => {

@@ -13,7 +13,7 @@
         "browsingData"
     ],
     "content_security_policy": {
-    "extension_pages": "script-src 'self'; connect-src 'self' http://localhost:3000;"
+    "extension_pages": "script-src 'self'; connect-src 'self' http://localhost:3000 http://localhost:4000;"
     },
     "host_permissions": [
         "<all_urls>"
@@ -30,7 +30,7 @@
     ],
     "web_accessible_resources": [
       {
-        "resources": ["injectedScript.js"],
+        "resources": ["injectedScript.js", "cookieStoreMonitor.js"],
         "matches": ["<all_urls>"]
       }
     ]

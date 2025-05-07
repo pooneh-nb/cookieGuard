@@ -23,13 +23,13 @@ def clear_url(url):
 def main():
     print("sort_requesrs_2:")
 
-    crawls_path = Path('server/output')
+    crawls_path = Path(Path.cwd(), 'cookieInterceptor/server/output')
 
     sites_dirs = utilities.get_directories_in_a_directory(crawls_path)
 
     for site_dir in sites_dirs:
         data = []
-        sorted_requests_dir = Path('analyze/data/sorted_requests')
+        sorted_requests_dir = Path(Path.cwd(), 'cookieInterceptor/analyze/data/sorted_requests')
         if not os.path.exists(sorted_requests_dir):
             os.mkdir(sorted_requests_dir)
         sorted_requests_path = Path(sorted_requests_dir, site_dir.split('/')[-1])
@@ -51,7 +51,7 @@ def main():
                         requestLogs['identifiers'] = list(identifiers) 
                         data.append(requestLogs)
 
-                sorted_entries = sorted(data, key=lambda x: x['timestamp'])
+        sorted_entries = sorted(data, key=lambda x: x['timestamp'])
 
         with open(Path(sorted_requests_path, 'requestlogs.json'), 'w') as output_file:
             json.dump(sorted_entries, output_file, indent=4)

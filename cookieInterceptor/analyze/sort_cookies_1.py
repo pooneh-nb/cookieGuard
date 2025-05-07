@@ -5,20 +5,20 @@ from pathlib import Path
 
 def main():
     print("sort_cookies_1:")
-    crawls_path = Path('server/output')
+    crawls_path = Path(Path.cwd(), 'cookieInterceptor/server/output')
 
     sites_dirs = utilities.get_directories_in_a_directory(crawls_path)
 
     for site_dir in sites_dirs:
         data = []
-        sorted_cookies_dir = Path('analyze/data/sorted_cookies')
+        sorted_cookies_dir = Path(Path.cwd(), 'cookieInterceptor/analyze/data/sorted_cookies')
         if not os.path.exists(sorted_cookies_dir):
             os.mkdir(sorted_cookies_dir)
         sorted_cookies_path = Path(sorted_cookies_dir, site_dir.split('/')[-1])
         if not os.path.exists(sorted_cookies_path):
             os.mkdir(sorted_cookies_path)
 
-        sorted_cookies_path = Path('analyze/data/sorted_cookies', site_dir.split('/')[-1])
+        sorted_cookies_path = Path(Path.cwd(), 'cookieInterceptor/analyze/data/sorted_cookies', site_dir.split('/')[-1])
         if not os.path.exists(sorted_cookies_path):
             os.mkdir(sorted_cookies_path)
 
@@ -30,11 +30,12 @@ def main():
                         cookieLogs = json.loads(line.strip())
                         data.append(cookieLogs)
 
-                sorted_entries = sorted(data, key=lambda x: x['timestamp'])
-
+        sorted_entries = sorted(data, key=lambda x: x['timestamp'])    
         
+            
         with open(Path(sorted_cookies_path, 'cookielogs.json'), 'w') as output_file:
             json.dump(sorted_entries, output_file, indent=4)
+
     print("done!")
 
 

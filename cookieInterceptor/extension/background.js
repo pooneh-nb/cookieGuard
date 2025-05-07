@@ -1,37 +1,38 @@
 // function to clear cookies and cache
-function clearBrowserData(callback) {
-    const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;  // 1 week
-    const oneWeekAgo = (new Date()).getTime() - millisecondsPerWeek;
+// function clearBrowserData(callback) {
+//     const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;  // 1 week
+//     const oneWeekAgo = (new Date()).getTime() - millisecondsPerWeek;
 
-    // clear cookies
-    chrome.browsingData.removeCookies({
-        "since": oneWeekAgo
-      }, () => {
-        console.log('Cookies have been cleared.');
+//     // clear cookies
+//     chrome.browsingData.removeCookies({
+//         "since": oneWeekAgo
+//       }, () => {
+//         console.log('Cookies have been cleared.');
     
-        // Clear cache
-        chrome.browsingData.removeCache({
-          "since": oneWeekAgo
-        }, () => {
-          console.log('Cache has been cleared.');
-          callback();  // Callback after cleaning
-        });
-      });
-    }
+//         // Clear cache
+//         chrome.browsingData.removeCache({
+//           "since": oneWeekAgo
+//         }, () => {
+//           console.log('Cache has been cleared.');
+//           callback();  // Callback after cleaning
+//         });
+//       });
+//     }
 
-    // Listen for when the extension is installed
-chrome.runtime.onInstalled.addListener(() => {
-    clearBrowserData(() => {
-      console.log('Browser data cleared, extension starting its operations.');
-    });
-});
+//     // Listen for when the extension is installed
+// chrome.runtime.onInstalled.addListener(() => {
+//     clearBrowserData(() => {
+//       console.log('Browser data cleared, extension starting its operations.');
+//     });
+// });
 
-// Listen for when the browser starts up
-chrome.runtime.onStartup.addListener(() => {
-    clearBrowserData(() => {
-      console.log('Browser data cleared on startup.');
-    });
-  });
+// // Listen for when the browser starts up
+// chrome.runtime.onStartup.addListener(() => {
+//     clearBrowserData(() => {
+//       console.log('Browser data cleared on startup.');
+//     });
+//   });
+const attachedTabs = new Set();
 
 function getBaseDomain(url) {
     try {
@@ -52,17 +53,6 @@ function getBaseDomain(url) {
 }
 
 
-// function parseCookieValue(headerValue) {
-//     const parts = headerValue.split(';');
-//     const firstPart = parts.shift();
-//     const splitValue = firstPart.split('=');
-//     return {
-//         name: splitValue[0],
-//         value: splitValue[1] || '' // Default to empty string if no value
-//     };
-// }
-
-
 function sendCookieData(data) {
     fetch(`http://localhost:3000/cookieLogs`, {
         method: "POST",
@@ -78,9 +68,24 @@ function sendCookieData(data) {
     
 }
 
+function sendCookieStoreData(data) {
+    fetch(`http://localhost:3000/cookieStoreLogs`, {
+        method: "POST",
+        body: JSON.stringify(data),
+        mode: 'cors',
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            "Content-Type": "application/json"
+        }
+    }).then(res => {
+        console.log("Request complete! response");
+    });
+    
+}
+
 function sendRequestData(data) {
     // console.log("sendRequestData");
-    fetch(`http://localhost:3000/requestLogs`, {
+    fetch(`http://localhost:4000/requestLogs`, {
         method: "POST",
         body: JSON.stringify(data),
         mode: 'cors',
@@ -177,46 +182,87 @@ chrome.webNavigation.onBeforeNavigate.addListener(function(details) {
     }
 }, {url: [{urlMatches: 'https://*/*'}]});  // Optional: Adjust URL filtering as needed
 
+// Global listener only once
+chrome.debugger.onEvent.addListener((source, method, params) => {
+    if (method !== 'Network.requestWillBeSent' || !attachedTabs.has(source.tabId)) return;
+  
+    const initiator = params.initiator || {};
+    const callFrames = initiator.stack?.callFrames;
+  
+    if (initiator.type === 'script' && Array.isArray(callFrames) && callFrames.length > 0) {
+      const initiatorURL = callFrames[0].url;
+      const requestURL = params.request.url;
+      const timestamp = params.timestamp;
+  
+      chrome.tabs.get(source.tabId, (tab) => {
+        if (chrome.runtime.lastError || !tab.url) return;
+        const visitingDomain = getBaseDomain(tab.url);
+        logRequestData({ initiatorURL, requestURL, visitingDomain, timestamp });
+      });
+    }
+  });
 
 async function attachDebuggerAndLogRequests(tabId) {
+    if (attachedTabs.has(tabId)) return;
+
     const debuggee = { tabId: tabId };
     try {
-        // First, fetch the tab to get the visiting URL
-        const tab = await chrome.tabs.get(tabId);
-        if (tab.url) {
-            const visitingDomain = getBaseDomain(tab.url);
-            console.log(visitingDomain);
-            await chrome.debugger.attach(debuggee, '1.3');
-            await chrome.debugger.sendCommand(debuggee, 'Network.enable', {});
+        await chrome.debugger.attach(debuggee, '1.3');
+        await chrome.debugger.sendCommand(debuggee, 'Network.enable');
+        attachedTabs.add(tabId);
+        console.log(`✅ Debugger attached to tab ${tabId}`);
+      } catch (err) {
+        console.warn(`❌ Failed to attach debugger to tab ${tabId}: ${err.message}`);
+      }
 
-            chrome.debugger.onEvent.addListener((source, method, params) => {
-                if (source.tabId === tabId && method === 'Network.requestWillBeSent') {
-                    if (params.initiator.type === 'script') {
-                        if (params.initiator.stack && params.initiator.stack.callFrames.length > 0 && params.initiator.stack.callFrames[0].url) {
-                            // console.log(`Initiator URL: ${params.initiator.stack.callFrames[0].url}`);
-                            // console.log(`Initiator type: ${params.initiator.type}`);
-                            // console.log(`Request URL: ${params.request.url}`);
-                            // console.log(`timestamp: ${params.timestamp}`);
-                            logRequestData({
-                                initiatorURL: params.initiator.stack.callFrames[0].url,
-                                requestURL: params.request.url,
-                                visitingDomain: visitingDomain,
-                                timestamp: params.timestamp
-                            });
-                        } else {
-                            console.log("No stack trace or call frames available");
-                        }
-                    }
-                }
-            });
-        }
-    } catch (error) {
-        console.error('Failed to attach debugger:', error);
-    }
+        // chrome.debugger.onEvent.addListener((source, method, params) => {
+        //     if (source.tabId === tabId && method === 'Network.requestWillBeSent') {
+        //         if (params.initiator.type === 'script') {
+        //             if (params.initiator.stack && params.initiator.stack.callFrames.length > 0 && params.initiator.stack.callFrames[0].url) {
+        //                 logRequestData({
+        //                     initiatorURL: params.initiator.stack.callFrames[0].url,
+        //                     requestURL: params.request.url,
+        //                     visitingDomain: visitingDomain,
+        //                     timestamp: params.timestamp
+        //                 });
+        //             } else {
+        //                 console.log("No stack trace or call frames available");
+        //             }
+        //         }
+        //     }
+        // });
+        // }
 }
 
-// handle the debugger detachment, either when done or when the tab closes
-chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
-    chrome.debugger.detach({ tabId: tabId }, () => console.log(`Debugger detached from tab ${tabId}`));
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === 'loading' && tab.url && tab.url.startsWith('http')) {
+    console.log(`🕵️ Attempting debugger attach for ${tab.url}`);
+    attachDebuggerAndLogRequests(tabId);
+  }
 });
 
+// handle the debugger detachment, either when done or when the tab closes
+// chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
+//     chrome.debugger.detach({ tabId: tabId }, () => console.log(`Debugger detached from tab ${tabId}`));
+// });
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+    if (attachedTabs.has(tabId)) {
+      chrome.debugger.detach({ tabId }, () => {
+        console.log(`🔌 Detached debugger from tab ${tabId}`);
+        attachedTabs.delete(tabId);
+      });
+    }
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'cookieAccess') {
+        if (message.logType === 'cookie') {
+            sendCookieData(message.payload);
+        } else if (message.logType === 'request') {
+            sendRequestData(message.payload);
+        } else if (message.logType === 'cookieStore') {
+            sendCookieStoreData(message.payload);
+        }
+    }
+});

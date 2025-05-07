@@ -7,7 +7,7 @@ import re
 
 def main():
     print("extracting valid cookie names")
-    storage_dict = utilities.read_json(Path('analyze/data/storage_dict.json'))
+    storage_dict = utilities.read_json(Path(Path.cwd(), 'cookieInterceptor/analyze/data/storage_dict.json'))
 
     keys = set()
     for site, cookies in storage_dict.items():
@@ -17,7 +17,7 @@ def main():
                     if len(val) > 8:
                         keys.add(key)
 
-    utilities.write_json('analyze/data/cookie_parameters.json', list(keys))
+    utilities.write_json(Path(Path.cwd(), 'cookieInterceptor/analyze/data/cookie_parameters.json'), list(keys))
 
 if __name__ == "__main__":
     main()

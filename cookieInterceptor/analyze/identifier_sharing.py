@@ -24,16 +24,26 @@ def check_idsyncing_heuristic(cookie_ids, query_ids):
             
     return False
 
-def run_idsyncing_heuristic(cookie_ids, query_ids):
+def check_idsyncing_heuristic_with_form_data(hashes, query_ids):
+    for item in query_ids:
+        if item in hashes:
+            return True
+    return False
+
+def run_idsyncing_heuristic(cookie_ids, query_ids, hashes):
     
     num_idsharing = 0
     is_sharing = False
     exfiltrated = []
+    data = []
     for item in query_ids:
         if check_idsyncing_heuristic(cookie_ids, item):
             is_sharing = True
             exfiltrated.append(item)
-    return is_sharing, exfiltrated
+        if check_idsyncing_heuristic_with_form_data(hashes, query_ids):
+            data.append(query_ids)
+
+    return is_sharing, exfiltrated, data
     
 def get_identifiers_from_qs(query, qs_item_length = 8):
     # qs = URLparse.parse_qsl(URLparse.urlsplit(url).query)
