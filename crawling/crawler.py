@@ -20,7 +20,10 @@ def kill_chrome():
     try:
         output = subprocess.check_output(["pgrep", "chrome"]).decode().strip().split("\n")
         for pid in output:
-            os.kill(int(pid), signal.SIGKILL)
+            try:
+                os.kill(int(pid), signal.SIGKILL)
+            except ProcessLookupError:
+                print(f"⚠️ Process {pid} already exited.")
         print("✅ Killed all running Chrome processes.")
     except subprocess.CalledProcessError:
         print("ℹ️ No Chrome processes were running.")

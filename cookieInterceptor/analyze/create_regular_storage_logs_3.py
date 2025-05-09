@@ -1,21 +1,24 @@
 import sys
+import os
+import re
+import time
+import tldextract
 from pathlib import Path
 project_dir = Path.home().cwd()
 sys.path.insert(1, Path.home().joinpath(project_dir).as_posix())
 sys.path.insert(1, Path.home().joinpath(project_dir, "analysis").as_posix())
 sys.path.insert(1, Path.home().joinpath(project_dir, "filterlists").as_posix())
-import check_tracking_single_url
 import utilities
-import identifier_sharing as idSync
-import os
-import pandas as pd
-import numpy as np
+import itertools
 from tqdm import tqdm
-import re
-import tldextract
-from urllib.parse import urlparse, urlunparse
 from datetime import datetime
-from datetime import datetime, timezone
+import check_tracking_single_url
+import identifier_sharing as idSync
+from urllib.parse import urlparse, urlunparse
+import multiprocessing
+from multiprocessing.pool import Pool
+
+
 
 def clear_url(url):
     extracted = tldextract.extract(url)
@@ -39,12 +42,13 @@ def parse_date(date_str):
             return datetime.strptime(date_str, date_format)
         except ValueError:
             continue
-    raise ValueError(f"date_str does not match any supported format")
+    # raise ValueError(f"date_str does not match any supported format")
+    return None
 
 
 def is_3p(url1, url2):
-    is_3p = check_tracking_single_url.get_domain(url1) != check_tracking_single_url.get_domain(url2)
-    return is_3p
+    return check_tracking_single_url.get_domain(url1) != check_tracking_single_url.get_domain(url2)
+
 
 def is_sneaky_exfiltration(query_ids, hashes):
     sneaky_exfiltration = []
@@ -56,17 +60,7 @@ def is_sneaky_exfiltration(query_ids, hashes):
     return sneaky_exfiltration
 
 
-
-def run_exfiltration_process(siteName, storage_dict):
-    hashes = utilities.read_json(Path(Path.cwd(), "cookieInterceptor/analyze/data/algos.json"))
-    hash_values = []
-    for field, value in hashes.items():
-        for alg, hash in value.items():
-            hash_values.append(hash)
-            
-
-    requests_dir = Path(Path.cwd(), f"cookieInterceptor/analyze/data/sorted_requests/{siteName}/requestlogs.json")
-    requests = utilities.read_json(requests_dir)
+def run_exfiltration_process(siteName, storage_dict, requests, hash_values):
     for key, value in storage_dict[siteName].items():
         cookie_ids = storage_dict[siteName][key]['identifiers']
         exfiltration = {}
@@ -76,7 +70,6 @@ def run_exfiltration_process(siteName, storage_dict):
                 if is_3p(request['initiatorURL'], storage_dict[siteName][key]['owner']['initiatorURL']):
                     query_ids = request['identifiers']
                     if cookie_ids and query_ids:
-
                         status, exfiltrated, data = idSync.run_idsyncing_heuristic(cookie_ids, query_ids, hash_values)
                         if status:
                             storage_dict[siteName][key]['logs'].append({'action': 'exfiltration',
@@ -88,24 +81,33 @@ def run_exfiltration_process(siteName, storage_dict):
     return storage_dict
 
 def get_cookie_params(raw_cookie):
-    # Regular expression to extract key-value pairs
     parts = raw_cookie.split(';')
     cookie_data = {}
-    
-    # First part is always the cookie name and value
-    name, value = parts[0].split('=', 1)
-    cookie_data['name'] = name.strip()
-    cookie_data['value'] = value.strip()
-    
-    # Parsing additional parameters if they exist
+
+    # Extract cookie name and value
+    if parts and '=' in parts[0]:
+        name, value = parts[0].split('=', 1)
+        cookie_data['name'] = name.strip()
+        cookie_data['value'] = value.strip()
+    else:
+        cookie_data['name'] = parts[0].strip() if parts else ''
+        cookie_data['value'] = ''
+
+    # Extract attributes like Domain, Path, Secure, etc.
     for part in parts[1:]:
+        part = part.strip()
         if '=' in part:
             key, val = part.split('=', 1)
+            key = key.strip().lower()
+            val = val.strip()
             if key == 'domain':
-                val = check_tracking_single_url.get_domain(val)
-            cookie_data[key.strip().lower()] = val.strip()
-        else:
-            cookie_data[part.strip().lower()] = True  # For flags like 'secure' and 'HttpOnly' which have no value
+                try:
+                    val = check_tracking_single_url.get_domain(val)
+                except Exception:
+                    pass  # fail silently if domain check fails
+            cookie_data[key] = val
+        elif part:  # for flags like Secure, HttpOnly
+            cookie_data[part.lower()] = True
 
     return cookie_data
 
@@ -136,9 +138,10 @@ def write_storage(transaction, storage_dict, siteName, common_headers):
             # expires_datetime = datetime.strptime(cookie_params['expires'], date_format)
             try:
                 parsed_date = parse_date(cookie_params['expires'])
-                if parsed_date < specific_time:
-                    delete_storage(transaction, storage_dict, siteName)
-                    return storage_dict
+                if parsed_date is not None:
+                    if parsed_date < specific_time:
+                        delete_storage(transaction, storage_dict, siteName)
+                        return storage_dict
             except ValueError as e:
                 pass
                 print(e)  
@@ -233,53 +236,83 @@ def delete_storage(transaction, storage_dict, siteName):
     return storage_dict
 
 
-def moderator(cookieLogs_path, storage_dict, common_headers):
-    siteName = cookieLogs_path.split('/')[-2]
-    storage_dict.setdefault(siteName, {})
+def moderator(args):
+    sorted_cookie, common_headers, hash_values, output_dir = args
+    siteName = sorted_cookie.split('/')[-1]
+    try:
+        cookieLogs_path = utilities.get_files_in_a_directory(sorted_cookie)[0]
+        storage_dict = {siteName: {}}
 
-    if os.path.getsize(cookieLogs_path) > 2:
+        if os.path.getsize(cookieLogs_path) < 2:
+            return None
+
         transactions = utilities.read_json(cookieLogs_path)
         for transaction in transactions:
-                # write / overwrite / detele
-                if transaction["action"] == "set":
-                    dict_cookie = write_storage(transaction, storage_dict, siteName, common_headers)
-                    continue
-        
-                # Read (keep track of cross-reading only)
-                if transaction["action"] == "get":
-                    dict_cookie = read_storage(transaction, storage_dict, siteName)
-                    continue
-            
-        if storage_dict[siteName]:
-            run_exfiltration_process(siteName, dict_cookie)
-            # dict_cookie = run_unify_logs(dict_cookie)
-    else:
-        storage_dict[siteName] = {}
+            if transaction["action"] == "set":
+                storage_dict = write_storage(transaction, storage_dict, siteName, common_headers)
+            elif transaction["action"] == "get":
+                storage_dict = read_storage(transaction, storage_dict, siteName)
+
+        if not any(storage_dict[siteName].values()):
+            return None
+
+        requests_path = Path(Path.cwd(), f"cookieInterceptor/analyze/data/sorted_requests/{siteName}/requestlogs.json")
+        if requests_path.exists():
+            requests = utilities.read_json(requests_path)
+            run_exfiltration_process(siteName, storage_dict, requests, hash_values)
+
+        out_path = output_dir / f"storage_{siteName}.json"
+        utilities.write_json(out_path, storage_dict)
+        return siteName
+    except Exception as e:
+        print(f"❌ Failed {siteName}: {e}")
+        return None
+
 
 def main():
-    print("create_storage_logs_3")
-    # load data
-    sorted_cookies_path = Path(Path.cwd(), 'cookieInterceptor/analyze/data/sorted_cookieStore')
+    print("🔁 Creating per-site storage JSON files")
+
+    sorted_cookies_path = Path(Path.cwd(), 'cookieInterceptor/analyze/data/sorted_cookies')
     sorted_cookies = utilities.get_directories_in_a_directory(sorted_cookies_path)
-    storage_dict = {}
 
-    # common headers
-    common_headers_dir = Path(Path.cwd(), "cookieInterceptor/analyze/data/common_headers.txt")
-    known_http_headers_raw = utilities.read_file_newline_stripped(common_headers_dir)
-    common_headers = set()
-    for item in known_http_headers_raw:
-        if item.strip() != '':
-            common_headers.add(item.strip().lower())
+    common_headers_path = Path(Path.cwd(), "cookieInterceptor/analyze/data/common_headers.txt")
+    common_headers = set(
+        line.strip().lower()
+        for line in utilities.read_file_newline_stripped(common_headers_path)
+        if line.strip()
+    )
+
+    hash_data = utilities.read_json(Path(Path.cwd(), "cookieInterceptor/analyze/data/algos.json"))
+    hash_values = [v for algo in hash_data.values() for v in algo.values()]
+
+    output_dir = Path(Path.cwd(), "cookieInterceptor/analyze/data/storage_sites")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    print("🚀 Starting parallel site processing with Pool")
+    cpu_to_relax = 2
+    args = zip(
+        sorted_cookies,
+        itertools.repeat(common_headers),
+        itertools.repeat(hash_values),
+        itertools.repeat(output_dir)
+    )
+
+    cpu_to_relax = 2
+    with Pool(processes=multiprocessing.cpu_count() - cpu_to_relax) as pool:
+        for _ in tqdm(pool.imap_unordered(moderator, args), total=len(sorted_cookies), desc="Processing sites"):
+            pass  # tqdm updates per completed site
 
 
-    for sorted_cookie in sorted_cookies:
-        sorted_cookieLogs_path = utilities.get_files_in_a_directory(sorted_cookie)[0]
-        moderator(sorted_cookieLogs_path, storage_dict, common_headers)
+    print("✅ Finished per-site processing. Merging...")
+    merged_dict = {}
 
-    output = Path(Path.cwd(), 'cookieInterceptor/analyze/data')
-    print("storing storage_dict.json")
-    utilities.write_json(Path(output, "storage_dict.json"), storage_dict)
-    print("done!")
+    for file in output_dir.glob("storage_*.json"):
+        site_dict = utilities.read_json(file)
+        merged_dict.update(site_dict)
+
+    final_output = Path(Path.cwd(), "cookieInterceptor/analyze/data/storage_dict.json")
+    utilities.write_json(final_output, merged_dict)
+    print(f"✅ All done. Final storage_dict saved to {final_output}")
 
 if __name__ == "__main__":
     main()
