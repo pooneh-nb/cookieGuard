@@ -1,15 +1,17 @@
 import os
+import gc
 import time
 import signal
 import random
 import tempfile
+import psutil
 import signal
 import shutil
 import utilities
 import subprocess
+import getpass
 from urllib.parse import urlparse
 from pathlib import Path
-from multiprocessing import Process
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -17,8 +19,9 @@ from selenium.webdriver.common.by import By
 
 
 def kill_chrome():
+    user = getpass.getuser()
     try:
-        output = subprocess.check_output(["pgrep", "chrome"]).decode().strip().split("\n")
+        output = subprocess.check_output(["pgrep", "-u", user, "chrome"]).decode().strip().split("\n")
         for pid in output:
             try:
                 os.kill(int(pid), signal.SIGKILL)
@@ -75,7 +78,7 @@ def random_click(driver, url):
             driver.back()
             time.sleep(2)
         except Exception as e:
-            print(f"❌ Could not click link: {e}")
+            print(f"❌ Could not click link")
 
     print(f"🔚 Clicked {clicked} link(s) in {attempts} attempts.")
 
@@ -85,13 +88,11 @@ def load_url(url, chromedriver_path, sleep):
     chrome_options = Options()
     chrome_options.binary_location = "/opt/google/chrome/google-chrome"
     chrome_options.add_argument(f"user-data-dir={temp_profile}")
-    # chrome_options.add_argument("user-data-dir=/tmp/fresh-profile")
-    chrome_options.add_argument("profile-directory=Profile 20")
-    chrome_options.add_argument("--load-extension=/home/c6/cookieProtect/cookieInterceptor/extension")
+    # chrome_options.add_argument("profile-directory=Profile 20")
+    chrome_options.add_argument("--load-extension=/home/pouneh/cookieProtect/cookieInterceptor/extension")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    # chrome_options.add_argument("--remote-debugging-port=9222")
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--enable-logging")
     chrome_options.add_argument("--v=1")
@@ -113,33 +114,37 @@ def load_url(url, chromedriver_path, sleep):
         try:
             driver.quit()
         except:
-            pass
+            print(f"⚠️ driver.quit() failed: {e}")
+        kill_chrome()
+        try:
+            service.stop()  # ✅ this is new
+        except Exception as e:
+            print(f"⚠️ service.stop() failed: {e}")
         try:
             shutil.rmtree(temp_profile)
         except Exception as e:
             print(f"❌ Failed to delete profile dir {temp_profile}: {e}")
 
 
+def log_memory_usage():
+    process = psutil.Process(os.getpid())
+    mem = process.memory_info().rss / (1024 * 1024)
+    print(f"🧠 Memory usage: {mem:.2f} MB")
+
 def run(urls, chromedriver_path, sleep):
     for idx, url in enumerate(urls):
-        if idx > 3300:
-            print(f"\n🌐 {idx} Visiting: {url}")
-            load_url(url, chromedriver_path, sleep)
-        # p = Process(target=load_url, args=(url, chromedriver_path, sleep))
-        # p.start()
-        # p.join(sleep + 10)  # hard timeout per site
-
-        # if p.is_alive():
-        #     print(f"🛑 Force killing stalled load: {url}")
-        #     p.terminate()
-        #     p.join()
-        #     kill_chrome()
+        print(f"\n🌐 {idx} Visiting: {url}")
+        load_url(url, chromedriver_path, sleep)
+        if idx % 10 == 0:
+            log_memory_usage()
+        time.sleep(1)
+        gc.collect()
 
 
 if __name__ == "__main__":
     kill_chrome()
-    CHROMEDRIVER = str(Path(Path.cwd(), 'crawling/chromedriver/chromedriver-linux64/chromedriver'))
-    tranco = str(Path(Path.cwd(), 'crawling/tranco/sites_sh.txt'))
+    CHROMEDRIVER = str(Path(Path.cwd(), 'crawling/chromedriver/chromedriver'))
+    tranco = str(Path(Path.cwd(), 'crawling/tranco/maula.txt'))
 
     SLEEP = 10
 
@@ -151,4 +156,5 @@ if __name__ == "__main__":
 
     unvisited_sites = [url for url in urls if url not in visited_sites]
     
+
     run(unvisited_sites, CHROMEDRIVER, SLEEP)
