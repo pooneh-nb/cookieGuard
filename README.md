@@ -26,13 +26,14 @@ Modern sites embed many third-party scripts directly in the main frame. As a res
 
 **Cite the Paper**
 If you use CookieGuard or the dataset/analysis in your work, please cite:
+```bibtex
 @inproceedings{bahrami2025cookieguard,
   title     = {CookieGuard: Characterizing and Isolating the First-Party Cookie Jar},
   author    = {Pouneh Nikkhah Bahrami and Aurore Fass and Zubair Shafiq},
-  booktitle = {Proceedings of the 2025 ACM Internet Measurement Conference (IMC '25)},
+  booktitle = {Proceedings of the ACM Internet Measurement Conference (IMC '25)},
   year      = {2025},
   address   = {Madison, WI, USA},
-  publisher = {ACM},
-  doi       = {10.1145/3730567.3764490}
+  publisher = {ACM}
+  % doi = {TBD}  % add when available
 }
 
