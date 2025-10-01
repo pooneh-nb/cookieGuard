@@ -34,6 +34,6 @@ If you use CookieGuard or the dataset/analysis in your work, please cite:
   year      = {2025},
   address   = {Madison, WI, USA},
   publisher = {ACM}
-  % doi = {TBD}  % add when available
+  % doi = {10.1145/3730567.3764490}  % add when available
 }
 
