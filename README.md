@@ -1,3 +1,5 @@
+<h2 align="center">CookieGuard: Characterizing and Isolating the First-Party Cookie Jar</h2>
+
 **Overview**
 
 Modern sites embed many third-party scripts directly in the main frame. As a result, those scripts inherit first-party privileges and can freely read, modify, delete, and exfiltrate first-party cookies set by the site or by other third parties. CookieGuard is a lightweight, deployable defense that:
